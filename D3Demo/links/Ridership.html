@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+<script src="../d3js/d3.js"></script>
+<script src="c3-0.4.11/c3.js"></script>
+<link rel="stylesheet" type="text/css" href="../css/sharedcss.css">
+<link href="c3-0.4.11/c3.css" rel="stylesheet" type="text/css">
+<meta charset="utf-8">
+<title>Average ridership graph</title>
+</head>
+<body>
+<a href="../mainpage.html">
+<div id="backdiv">
+BACK TO MAIN
+</div>
+</a>
+
+<div style="font: 14px sans-serif; padding: 5px;">
+
+<div style="font-size: 15px; font-weight: bold; margin-top: 50px; margin-bottom: 5px;">Data Source</div>
+<div style="margin-bottom: 10px; width: 80%;">
+The data is taken from the <a href="https://data.gov.sg/dataset/public-transport-utilisation-average-public-transport-ridership">Singapore's open data portal.</a> Data represents average ridership of different types of transport over 20 years
+</div>
+
+<div style="font-size: 15px; font-weight: bold; margin-bottom: 5px;">Target Audience</div>
+<div style="margin-bottom: 10px; width: 80%;">
+Transport organisation, goverment, fuel dealers 
+</div>
+
+<div style="font-size: 15px; font-weight: bold; margin-bottom: 5px;">Usage Case</div>
+<div style="margin-bottom: 10px; width: 80%;">
+On data it is clear whcih transport type was the most popular<br/>
+The erratic lines for fuel based trasport types show that it is less reliable than alternative sources of fuel.
+</div>
+
+
+</div>
+
+<div id="chart" style="top: 0px;"></div>
+<script type="text/javascript">
+x1 = ['x', 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014]
+mrt = ['MRT', 740, 850, 911, 946, 986, 1047, 1071, 1081, 1171, 1270, 1321, 1408, 1527, 1698, 1782, 2069, 2295, 2525, 2623, 2762]
+bus = ['Bus' ,3009, 3118, 3116, 3121, 3213, 3251, 3281, 3197, 2992, 2805, 2779, 2833, 2932, 3087, 3047, 3199, 3385, 3481, 3601, 3751]
+lrt = ['LRT', 27, 39, 41, 39, 50, 55, 69, 74, 79, 88, 90, 100, 111, 124, 132, 137]
+x2 = ['x2', 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014]
+taxi = ['Taxi', 880, 839, 805, 852, 980, 946, 944, 909, 860, 912, 933, 967, 967, 1020]
+x3 = ['x3', 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014]
+
+var chart = c3.generate({
+	bindto: '#chart',
+	
+	size: { height: 500, width: 1200 },
+	
+    data: {
+		xs:{'MRT': 'x', 'Bus': 'x', 'LRT': 'x2', 'Taxi': 'x3'},
+		columns: [bus, mrt, taxi, lrt, x1, x2, x3]
+    },
+	
+	axis:{ x:{tick:{culling: { max:30 } }, label: 'Year' },
+	
+	y:{label: 'Average ridership'} }
+
+});
+</script>
+</body>
+</html>

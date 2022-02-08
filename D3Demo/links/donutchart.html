@@ -1,0 +1,517 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>donutchart</title>
+<script src="../d3js/d3.js"></script>
+<script src="donutchartdata.js"></script>
+<link rel="stylesheet" type="text/css" href="../css/sharedcss.css">
+<style>
+.arc text {
+	font: 14px sans-serif;
+	text-anchor: middle;
+}
+
+div#piechart {
+	width: 100%;
+	height: 90vh;
+}
+
+input[type=range] {
+	-webkit-appearance: none;
+	width: 99.3%;
+}
+
+input[type=range]:focus {
+	outline: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: 1px solid rgba(180,177,177,1.00);
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+	background: #ddd;
+	margin: -6px 0 0 0;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    height: 3px;
+    background: #ddd;
+    border: none;
+}
+
+div#slider {
+	width: 80%;
+	margin: 0 auto;
+}
+
+input[type=checkbox] {
+	-webkit-appearance: none;
+	height: 17px;
+	width: 17px;
+	padding: 0 0 0 1px;
+	border-radius: 3px;
+}
+
+input[type=checkbox]:checked:after {
+	content: '\2714';
+	font-size: 12px;
+	font-weight: bold;
+	color: #000000;
+}
+
+input[type=checkbox]:hover {
+	color: #99a1a7;
+}
+
+button {
+	background-color: transparent;
+	border: 2px solid rgb(204, 230, 255);
+	width: 134px;
+	padding: 10px 0;
+	text-align: center;
+	text-decoration: none;
+	font: 15px sans-serif;
+	border-radius: 4px;
+	-webkit-transition-duration: 0.2s;
+}
+
+button:hover {
+	background-color: rgb(204, 230, 255);
+	color: rgba(255,255,255,1.00);
+}
+
+#bluebox {
+	background-color: transparent;
+	border: 2px solid rgb(204, 230, 255);
+	text-decoration: none;
+	font: 15px sans-serif;
+	border-radius: 4px;
+}
+
+
+@media (max-width: 600px) {
+	body {
+		height: 0;
+	}
+	
+	div#piechart {
+		width: 580px;
+	}
+}
+</style>
+</head>
+
+<body>
+<a href="../mainpage.html">
+<div id="backdiv">
+BACK TO MAIN
+</div>
+</a>
+<button id="playbutton" style="position:absolute; top: 60px; left: 10px;" onClick="startTimeLine(this);">PLAY TIMELINE</button>
+<button id="sortbox" style="position:absolute; top: 110px; left: 10px;" onClick="sortData(this)">SORT BY CATEGORY</button>
+
+<div id="piechart">
+</div>
+
+<div id="slider">
+<input id="periodslider" type="range" min="0" value="0" onchange="filterData()" oninput="filterData()"/>
+</div>
+
+<div id="bluebox" style="width: 80%; position: relative; top: 50px; left: 8%; font: 14px sans-serif; padding: 20px; margin-bottom: 10px;">
+
+<div style="font-size: 15px; font-weight: bold; margin-bottom: 5px;">Data Source</div>
+<div style="margin-bottom: 10px;">
+The data is taken from the <a href="https://data.gov.sg/dataset/retail-sales-index-2014-100-at-current-prices-ssic-2010-monthly">Singapore's open data portal.</a> The data consists of the Retail Sales Index (RSI) for multiple sectors of the industry. These sectors include Department Stores, Supermarkets, Mini-marts & Convenience Stores, Food & Beverages, Motor Vehicles (Excluding ARF), Petrol Service Stations, Medical Goods & Toiletries, Wearing Apparel & Footwear, Furniture & Household Equipment, Recreational Goods, Watches & Jewellery, Telecomm. Apparatus & Computers, Optical Goods & Books, and Others. This data set consists of RSI values for each month over the course of around 16 years.
+</div>
+
+<div style="font-size: 15px; font-weight: bold; margin-bottom: 5px;">Target Audience</div>
+<div style="margin-bottom: 10px;">
+The target audience will consist of companies from various sectors of the economy, consumers, and the government.
+</div>
+
+<div style="font-size: 15px; font-weight: bold; margin-bottom: 5px;">Usage Case</div>
+<div>
+Companies can compare how the sector they produce for fare against others.<br/>
+Credit card companies can use the data to see which sectors would be good to work with.<br/>
+Government bodies can view which sector would affect the economy the most before applying a policy.<br/>
+Curious people from any background can use the play feature to view how the economy demands and supplies has changed over time.<br/>
+Data can be filtered to view the change of one sector over time.<br/>
+Goverment bodies can sort the data to find the highest contributing industry in a month.<br/>
+</div>
+
+</div>
+
+<script>
+document.getElementById("periodslider").max = data.length-1;
+
+var sortMode = 0;
+
+var monthData = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+var color = d3.scale.category20();
+
+var categoryArray = ["Department Stores", "Supermarkets", "Mini-marts & Convenience Stores", "Food & Beverages", "Motor Vehicles (Excluding ARF)", "Petrol Service Stations", "Medical Goods & Toiletries", "Wearing Apparel & Footwear", "Furniture & Household Equipment", "Recreational Goods", "Watches & Jewellery", "Telecomm. Apparatus & Computers", "Optical Goods & Books", "Others"];
+
+//var color = ["#ff944d", "#80aaff", "#39ac73", "#ff99e6", "#ffcc99", "#ffff99", "#d966ff", "#ffcc33", "#ff6666", "#dfff80", "#9999ff", "#99ffe6", "#d6d6c2", "#ffcccc"];
+
+var width = parseInt(d3.select('#piechart').style('width'), 10),
+	height = parseInt(d3.select('#piechart').style('height'), 10),
+	radius = Math.min(width, height) / 2;
+
+var arc = d3.svg.arc()
+    .outerRadius(radius - 20)
+    .innerRadius(radius - 70);
+
+var labelArc = d3.svg.arc()
+    .outerRadius(radius - 45)
+    .innerRadius(radius - 45);
+
+var mouseOverArc = d3.svg.arc()
+	.outerRadius(radius)
+	.innerRadius(radius - 70);
+
+var pie = d3.layout.pie()
+	.sort(null)
+	.value(function(d) { return d.value; });
+
+var svg = d3.select("#piechart").append("svg")
+	.attr("width", width)
+	.attr("height", height)
+	.append("g")
+		.attr("transform", "translate(" + (width*0.5) + "," + (height*0.5) + ")");
+
+var singledisplaygroup = svg.append('g')
+	.attr('class', 'singledisplaygroup')
+	.attr('opacity', 0)
+	.style("text-anchor", "middle");
+
+singledisplaygroup.append('text')
+	.attr('class', 'line1')
+	.attr('transform', 'translate(0, -10)')
+	.style('font', '22px sans-serif')
+	.style('font-weight', 'bold');
+
+singledisplaygroup.append('text')
+	.attr('class', 'line2')
+	.attr('transform', 'translate(0, 40)')
+	.style('font', "16px sans-serif");
+
+var centredisplay = svg.append('g')
+	.attr('class', 'centredisplay')
+	.attr('opacity', 1)
+	.style('text-anchor', 'middle');
+
+centredisplay.append('text')
+	.attr('class', 'line1')
+	.attr('transform', 'translate(0,-20)')
+	.style('font', '40px sans-serif')
+	.style('font-weight', 'bold');
+
+centredisplay.append('text')
+	.attr('class', 'line2')
+	.attr('transform', 'translate(0,20)')
+	.style('font', '16px sans-serif');
+
+centredisplay.append('text')
+	.attr('class', 'line3')
+	.attr('transform', 'translate(0,60)')
+	.attr('opacity', 0.3)
+	.style('font', '18px sans-serif')
+	.text("Hover over a section to view it's RSI");
+
+svg.append('g')
+	.attr('class', 'legendgroup')
+	.attr('transform', 'translate(' + (radius + 50) + ',0)')
+	.append('text')
+		.attr('class', 'legendheader')
+		.style('font', "20px sans-serif")
+		.style('font-weight', 'bold')
+		.text('Categories');
+
+//Legend sizing
+var legendRectSize = 15;
+var legendSpacing = 5;
+var legendData = data[0].values.map(function(d) { return d.category; });
+legendData.push("All");
+
+//Shifts legend based on elements in legend
+svg.select('.legendheader').attr('transform', 'translate(0,' + (-9-(legendRectSize + legendSpacing)*legendData.length/2) + ')');
+
+//Appends group for each element new element
+var legend = svg.select('.legendgroup').selectAll('.legend')
+	.data(legendData);
+
+//New elements for legend	
+var legendg = legend.enter().append('g')
+	.attr('class', 'legend')
+	.attr('transform', function(d, i) {
+		var legendHeight = legendRectSize + legendSpacing;
+		var offset =  legendHeight * legendData.length / 2;
+		var vert = i * legendHeight - offset;
+		return 'translate(0,' + vert + ')';
+	});
+
+legendg.append('text')
+	.attr('x', legendRectSize + legendSpacing + 2)
+	.attr('y', legendRectSize - legendSpacing + 5)
+	.attr('pointer-events', 'none')
+	.style('font', "14px sans-serif")
+	.text(function(d) { return d; });
+
+legendg.append('foreignObject')
+	.attr('x', -3)
+	.attr('y', -1.5)
+	.append('xhtml')
+	.html(function(d, i) { return (d != "All") ? '<input type=checkbox checked=true id="' + d + '" style="border:2px solid' + color(d) + '"onChange=filterData()></input>' : '<input type=checkbox checked=true id=All style="border:2px solid' + color(d) + '" onChange=checkAllBox()></input>'  });
+
+d3.select(window).on("resize",resize);
+
+//Initializes website with chart with first data
+filterData();
+
+function updateChart(currentData, sliderValue, categories) {
+	
+	//Selects data set based on slider
+	var dataTotal = d3.sum(currentData, function(d) { return d.value; }).toFixed(2);
+	var percentageData = currentData.map(function(d) { return (d.value/dataTotal*100).toPrecision(3) });
+	
+	//Binds data holding RSI for one month
+	var piesections = svg.selectAll(".arc");
+	var piesections0 = piesections.data();
+	piesections0 = categories.map(function(d) { 
+		for(var i = 0; i < piesections0.length; i++) {
+			if(piesections0[i].data.category === d) return piesections0[i];
+		}
+	}).filter(function(d) { return d; });
+	var piesections1 = pie(currentData, "category");
+	piesections = piesections.data(piesections1, key);
+	
+	//Creates placeholders	
+	var newsections = piesections.enter().append("g")
+		.attr("class", "arc");
+
+	//Adds path and text to placeholders
+	newsections.append('path')
+		.attr("fill", function(d) { return color(d.data.category); })
+		.attr('stroke', '#FFF')
+		.each(function(d, i) { this._current = findNeighborArc(i, piesections0, piesections1, key) || d; });
+	newsections.append('text')
+		.attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
+		.attr("dy", ".35em")
+		.attr('pointer-events', 'none');
+
+	//Updates paths of donut chart
+	if(piesections0.length == 0) {
+		piesections.select('path').transition().delay(function(d, i) { return i * 50 * (15-piesections1.length); }).duration(50 * (15-piesections1.length))
+			.attrTween('d', function(d) {
+				var i = d3.interpolate(d.startAngle, d.endAngle);
+				return function(t) { d.endAngle = i(t); return arc(d); };
+		  });
+	} else {
+		piesections.select('path').transition()
+			.attrTween("d", arcTween);
+	}
+	piesections.select('path')
+		.on("mouseover", function(d, i) {
+			svg.select('.legendgroup').selectAll('.legend').select('text').transition()
+				//.attr('opacity', function(data, index) { return d.data.category == data ? 1 : 0.3; });
+				.style('font-weight', function(data, index) { return d.data.category == data ? 'bolder' : null; });
+			d3.select(this).transition().duration(200)
+				.attr('d', mouseOverArc);
+			svg.select('.centredisplay').transition()
+				.attr('opacity', 0);
+			svg.select('.singledisplaygroup').transition()
+				.attr('opacity', 1);
+			svg.select('.singledisplaygroup').select('.line1')
+				.text(d.data.category);
+			svg.select('.singledisplaygroup').select('.line2')
+				.text('Retail Sales Index: ' + d.value);
+		})
+		.on("mouseout", function(d) {
+			svg.select('.legendgroup').selectAll('.legend').select('text').transition().style('font-weight', null);
+			svg.selectAll('.centredisplay').transition().attr('opacity', 1);
+			svg.select('.singledisplaygroup').transition().attr('opacity', 0);
+			d3.select(this).transition().duration(200).attr('d', arc);
+		});
+
+	//Updates text of donut chart
+	piesections.select('text').transition()
+		.attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
+		.text(function(d, i) { return percentageData[i]; });
+
+	//Removes sections which have no value
+	if(piesections1.length != 0) {
+		piesections.exit().select('path')
+			.datum(function(d, i) { return findNeighborArc(piesections0.map(function(c) { return c.data.category; }).indexOf(d.data.category), piesections1, piesections0, key) || d; })
+		.transition()
+			.attrTween("d", arcTween);
+	} else {
+		piesections.exit().select('path').transition().delay(function(d, i) { return 150/i; }).duration(30)
+			.attrTween('d', function(d) {
+				var i = d3.interpolate(d.endAngle, d.startAngle);
+				return function(t) { d.endAngle = i(t); return arc(d); };
+		  });
+	}
+	piesections.exit().select('text').text('');
+	piesections.exit().transition().remove();
+
+	//Change display in middle of donut
+	var period = data[sliderValue].period;
+	var year = period.substring(0,4);
+	var month = monthData[Math.round(period.substring(5))-1];
+	svg.select('.centredisplay').select('.line1')
+		.text(month + " " + year);
+	svg.select('.centredisplay').select('.line2')
+		.text('Total RSI: ' + dataTotal);
+	
+	//Sections of the legend to be updated
+	legend.select('text').transition()
+		.attr('opacity', function (d, i) { return document.getElementById(d).checked ? 1 : 0.3; });
+}
+
+function resize() {
+	width = parseInt(d3.select('#piechart').style('width'), 10),
+	height = parseInt(d3.select('#piechart').style('height'), 10),
+	radius = Math.min(width, height) / 2;
+	d3.select("svg")
+		.attr("width", width)
+		.attr("height", height);
+	d3.select("svg").select("g")
+		.attr("transform", "translate(" + (width*0.5) + "," + (height*0.5) + ")");
+	arc = d3.svg.arc()
+		.outerRadius(radius - 20)
+		.innerRadius(radius - 70);
+	labelArc = d3.svg.arc()
+		.outerRadius(radius - 45)
+		.innerRadius(radius - 45);
+	mouseOverArc = d3.svg.arc()
+		.outerRadius(radius)
+		.innerRadius(radius - 70);
+	filterData();
+}
+
+function checkAllBox() {
+	if(document.getElementById("All").checked) {
+		for(var i = 0; i < 14; i++) {
+			document.getElementById(categoryArray[i]).checked = true;
+		}
+	} else {
+		for(var i = 0; i < 14; i++) {
+			document.getElementById(categoryArray[i]).checked = false;
+		}
+	}
+	filterData();
+}
+
+function filterData() {
+	var sliderValue = document.getElementById('periodslider').value;
+	var newData = data[sliderValue].values;
+	if(sortMode == 1) {
+		newData.sort(function(a, b) {
+			return a.value - b.value;
+		})
+	} else {
+		var temp = [];
+		categoryArray.forEach(function(key) {
+			var found = false;
+			newData = newData.filter(function(item) {
+				if(!found && item.category == key) {
+					temp.push(item);
+					found = true;
+					return false;
+				} else return true;
+			})
+		})
+		newData = temp;
+	}
+	var filteredData = newData.filter(function (d, i) { if(document.getElementById(d.category).checked) return d; });
+	for(var i = 0; i < newData.length; i++) {
+		if(!document.getElementById(categoryArray[i]).checked) { document.getElementById("All").checked = false; break;} 
+		else document.getElementById("All").checked = true;
+	}
+	for(var i = 0; i < newData.length; i++) { document.getElementById(categoryArray[i]).disabled = true; }
+	setTimeout(function() { for(var i = 0; i < newData.length; i++) {
+			document.getElementById(categoryArray[i]).disabled = false;
+		}
+		document.getElementById("All").disabled = false;
+	}, 200);
+	updateChart(filteredData, sliderValue, newData.map(function(d) { return d.category; }));
+}
+
+function findNeighborArc(i, data0, data1, key) {
+	var d;
+	return (d = findPreceding(i, data0, data1, key)) ? {startAngle: d.endAngle, endAngle: d.endAngle}
+		: (d = findFollowing(i, data0, data1, key)) ? {startAngle: d.startAngle, endAngle: d.startAngle}
+		: null;
+}
+
+// Find the element in data0 that joins the highest preceding element in data1.
+function findPreceding(i, data0, data1, key) {
+	var m = data0.length;
+	while (--i >= 0) {
+		var k = key(data1[i]);
+		for (var j = 0; j < m; ++j) {
+			if (key(data0[j]) === k) return data0[j];
+		}
+	}
+}
+
+function findFollowing(i, data0, data1, key) {
+	var n = data1.length, m = data0.length;
+	while (++i < n) {
+		var k = key(data1[i]);
+		for (var j = 0; j < m; ++j) {
+			if (key(data0[j]) === k) return data0[j];
+		}
+	}
+}
+
+function arcTween(d) {
+	var i = d3.interpolate(this._current, d);
+	this._current = i(0);
+	return function(t) { return arc(i(t)); };
+}
+
+function key(d) {
+  return d.data.category;
+}
+
+function startTimeLine(button) {
+	if(button.innerHTML == "PLAY TIMELINE") {
+		button.innerHTML = "STOP TIMELINE";
+		playTimeLine();
+	} else {
+		button.innerHTML = "PLAY TIMELINE";
+		clearTimeout(playTimeOut);
+	}
+}
+
+function playTimeLine() {
+	if(document.getElementById('periodslider').value < data.length-1) {
+		document.getElementById('periodslider').value++;
+		playTimeOut = setTimeout(function() { 
+			playTimeLine();
+		}, 1000);
+	} else {
+		startTimeLine(document.getElementById("playbutton"));
+	}
+	filterData();
+}
+
+function sortData(button) {
+	if(button.innerHTML == "SORT BY CATEGORY") {
+		button.innerHTML = "SORT BY VALUE";
+		sortMode = 1;
+		filterData();
+	} else {
+		button.innerHTML = "SORT BY CATEGORY";
+		sortMode = 0;
+		filterData();
+	}
+}
+</script>
+</body>
+</html>
