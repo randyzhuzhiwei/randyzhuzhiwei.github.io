@@ -1,0 +1,342 @@
+<!DOCTYPE html PUBLIC >
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:700' rel='stylesheet' type='text/css'>
+<title>Daily Public Transport Ridership</title>
+<style>
+    #back{
+    position: fixed;
+    top: 10;
+}
+
+body {
+    text-align: center;
+	font: 15px sans-serif;
+}
+
+    h1{
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    p{
+        font-family: 'Open Sans', sans-serif;
+    }
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.line {
+	fill: none;
+	stroke: steelblue;
+	stroke-width: 1.5px;
+}
+.chart {
+	border: 1px double #333;
+	width: 1100px;
+	margin-top: 20px;
+	margin-right: auto;
+	margin-bottom: auto;
+	margin-left: auto;
+}
+
+#controls {
+	font-family: "MS Serif", "New York", serif;
+	font-size: 18px;
+	color: #000;
+	margin-left: 43%;
+}
+
+</style>
+<script src="d3.js" charset="utf-8"></script>
+</head>
+
+<body>
+
+    <p align="center"><img src="title.png"></p>
+
+<div id="controls">
+  <form name="myform" action="checkboxes.asp" method="post">
+      <label><input type="checkbox" name="check_list" id = "Bus" checked value="1"/>Bus</label>
+
+      <label><input type="checkbox" name="check_list" id = "LRT" checked value="2"/>LRT</label>
+
+      <label><input type="checkbox" name="check_list" id = "MRT" checked value="3"/>MRT</label>
+
+      <label><input type="checkbox" name="check_list" id = "Taxi" checked value="4"/>Taxi</label>
+
+      <label><input type="button" name="All" checked value="Check All" onClick="CheckAll(document.myform.check_list)"></label>
+
+      <label><input type="button" name="Un_CheckAll" value="Uncheck All" onClick="UnCheckAll(document.myform.check_list)"></label>
+
+  </form>
+</div>
+
+    <p align = "left"><span id="back"><a href="../index.html"><img src=../back.png></a></span></p>
+
+<div class="chart"></div>
+<script>
+var data = [];
+var tempArray = [];
+var temp={year:2001,value:3281};tempArray.push(temp);
+var temp={year:2002,value:3197};tempArray.push(temp);
+var temp={year:2003,value:2992};tempArray.push(temp);
+var temp={year:2004,value:2805};tempArray.push(temp);
+var temp={year:2005,value:2779};tempArray.push(temp);
+var temp={year:2006,value:2833};tempArray.push(temp);
+var temp={year:2007,value:2932};tempArray.push(temp);
+var temp={year:2008,value:3087};tempArray.push(temp);
+var temp={year:2009,value:3047};tempArray.push(temp);
+var temp={year:2010,value:3199};tempArray.push(temp);
+var temp={year:2011,value:3385};tempArray.push(temp);
+var temp={year:2012,value:3481};tempArray.push(temp);
+var temp={year:2013,value:3601};tempArray.push(temp);
+var temp={year:2014,value:3751};tempArray.push(temp);
+var temp={type: "Bus", values: tempArray};data.push(temp);
+var tempArray = [];
+var temp={year:2001,value:41};tempArray.push(temp);
+var temp={year:2002,value:39};tempArray.push(temp);
+var temp={year:2003,value:50};tempArray.push(temp);
+var temp={year:2004,value:55};tempArray.push(temp);
+var temp={year:2005,value:69};tempArray.push(temp);
+var temp={year:2006,value:74};tempArray.push(temp);
+var temp={year:2007,value:79};tempArray.push(temp);
+var temp={year:2008,value:88};tempArray.push(temp);
+var temp={year:2009,value:90};tempArray.push(temp);
+var temp={year:2010,value:100};tempArray.push(temp);
+var temp={year:2011,value:111};tempArray.push(temp);
+var temp={year:2012,value:124};tempArray.push(temp);
+var temp={year:2013,value:132};tempArray.push(temp);
+var temp={year:2014,value:137};tempArray.push(temp);
+var temp={type: "LRT", values: tempArray};data.push(temp);
+var tempArray = [];
+var temp={year:2001,value:1071};tempArray.push(temp);
+var temp={year:2002,value:1081};tempArray.push(temp);
+var temp={year:2003,value:1171};tempArray.push(temp);
+var temp={year:2004,value:1270};tempArray.push(temp);
+var temp={year:2005,value:1321};tempArray.push(temp);
+var temp={year:2006,value:1408};tempArray.push(temp);
+var temp={year:2007,value:1527};tempArray.push(temp);
+var temp={year:2008,value:1698};tempArray.push(temp);
+var temp={year:2009,value:1782};tempArray.push(temp);
+var temp={year:2010,value:2069};tempArray.push(temp);
+var temp={year:2011,value:2295};tempArray.push(temp);
+var temp={year:2012,value:2525};tempArray.push(temp);
+var temp={year:2013,value:2623};tempArray.push(temp);
+var temp={year:2014,value:2762};tempArray.push(temp);
+var temp={type: "MRT", values: tempArray};data.push(temp);
+var tempArray = [];
+var temp={year:2001,value:880};tempArray.push(temp);
+var temp={year:2002,value:839};tempArray.push(temp);
+var temp={year:2003,value:805};tempArray.push(temp);
+var temp={year:2004,value:852};tempArray.push(temp);
+var temp={year:2005,value:980};tempArray.push(temp);
+var temp={year:2006,value:946};tempArray.push(temp);
+var temp={year:2007,value:944};tempArray.push(temp);
+var temp={year:2008,value:909};tempArray.push(temp);
+var temp={year:2009,value:860};tempArray.push(temp);
+var temp={year:2010,value:912};tempArray.push(temp);
+var temp={year:2011,value:933};tempArray.push(temp);
+var temp={year:2012,value:967};tempArray.push(temp);
+var temp={year:2013,value:967};tempArray.push(temp);
+var temp={year:2014,value:1020};tempArray.push(temp);
+var temp={type: "Taxi", values: tempArray};data.push(temp);
+var tempArray = [];
+
+//making a chart
+
+var color = [];
+
+var margin = {top: 70, right: 100, bottom: 50, left: 80},
+    width = 1060 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
+
+var x = d3.scale.linear()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height , 0]);
+
+var color = d3.scale.category10();
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+	.tickFormat(d3.format("d"));
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+	.tickFormat(d3.format("d"));
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d.year); })
+    .y(function(d) { return y(d.value); });
+
+var svg = d3.select(".chart").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var focus = svg.append("g")
+    .style("display", "none");
+	var hg = focus.selectAll('.hovergroup')
+		.data(data.map(function(d) { return d.type; }))
+		.enter().append('g');
+    hg.append("text")
+        .attr("class", "y1")
+        .attr("dx", 8)
+        .attr("dy", "-.3em");
+	hg.append("text")
+        .attr("class", "y2")
+        .attr("dx", 8)
+        .attr("dy", "1em");
+	//create rectangle behind the bar chart to kepp track of user mouse
+    svg.append("rect")
+        .attr("width", width)
+        .attr("height", height)
+        .style("fill", "none")
+		.style("pointer-events", "all")
+        .on("mouseover", function() { focus.style("display", null); })
+        .on("mouseout", function() { focus.style("display", "none"); })
+        .on("mousemove", mousemove);
+
+//************************************************//
+  var bisectDate = d3.bisector(function(d) { return d.year; }).left;
+  color.domain(data.map(function(d) { return d.type; }));
+  x.domain(d3.extent(data[0].values, function(d) { return d.year; }));
+  //Max accroding to the data(Rider)
+  y.domain([0,d3.max(data, function(c) { return d3.max(c.values, function(v) { return v.value; }); })]);
+	//xAxis and yAxis
+	svg.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + height + ")")
+		.call(xAxis)
+	.append("text")
+		.attr("x", width + 50)
+		.attr("dx", ".71em")
+		.style("text-anchor", "end")
+		.text("Year")
+		.style("font-size", "15px");
+
+	svg.append("g")
+		.attr("class", "y axis")
+		.call(yAxis)
+	 .append("text")
+		.attr("transform", "rotate(-90)")
+		.attr("y", -70)
+		.attr("dy", ".71em")
+		.style("text-anchor", "end")
+		.text("Average Daily Public Transport Ridership")
+		.style("font-size", "15px")
+
+function mousemove() {
+	var x0 = x.invert(d3.mouse(this)[0]),
+	i = bisectDate(data[0].values, x0, 1),
+	d0 = data[0].values[i - 1],
+	d1 = data[0].values[i],
+	d = x0 - d0.year > d1.year - x0 ? i : i-1;
+
+	focus.selectAll("g")
+		.attr("transform", function(a,b) { return ("translate(" + x(data[0].values[d].year) + "," + (y(data[b].values[d].value)) + ")"); });
+	focus.selectAll('g').selectAll("text.y1")
+		.text(function(a,b) { return data[data.map(function(j) { return j.type; }).indexOf(a)].values[d].value; });
+}
+	//add line
+  var transport = svg.selectAll(".transport")
+      .data(data)
+    .enter().append("g")
+      .attr("class", "transport");
+
+  transport.append("path")
+      .attr("class", "line")
+      .attr("d", function(d) {return line(d.values); })
+      .style("stroke", function(d) { return color(d.type); })
+	  .on("mouseover", function() { focus.style("display", null); })
+	  .on("mouseout", function() { focus.style("display", "none"); })
+	  .on("mousemove", mousemove);
+
+  transport.selectAll("circle")//select the data
+  		.data(function(d) { return d.values; })//go in the objects
+	  	.enter().append("circle")
+		.attr("r", 3.5)
+		.attr("cx", function(d) { return x(d.year); })
+		.attr("cy", function(d) { return y(d.value); })
+		.style("pointer-events", "all")
+        .on("mouseover", function() { focus.style("display", "null"); })
+        .on("mouseout", function() { focus.style("display", "none"); })
+        .on("mousemove", mousemove);
+
+//text at the end of the line
+  transport.append("text")
+      .datum(function(d) { return {type: d.type, value: d.values[d.values.length - 1]}; })
+      .attr("transform", function(d) { return "translate(" + (x(d.value.year)+40) + "," + y(d.value.value) + ")"; })
+      .attr("x", 3)
+      .attr("dy", ".35em")
+	  .style("font-size", "18px")
+	  .style("fill", function(d) { return color(d.type); })
+      .text(function(d) { return d.type; });
+
+	d3.select("#MRT").on("change", opacity);
+	d3.select("#LRT").on("change", opacity);
+	d3.select("#Bus").on("change", opacity);
+	d3.select("#Taxi").on("change", opacity);
+		function CheckAll(chk)
+		{
+		for (i = 0; i < chk.length; i++)
+			chk[i].checked = true ;
+			opacity();
+		}
+
+		function UnCheckAll(chk)
+		{
+		for (i = 0; i < chk.length; i++)
+			chk[i].checked = false ;
+			opacity();
+		}
+	  function opacity() {
+		focus.selectAll("g")
+			.attr('opacity', function(d) { return document.getElementById(d).checked ? 1 : 0; })
+		svg.selectAll(".transport")
+			.transition()
+			.duration(700)
+			.attr('opacity', function (d) { return document.getElementById(d.type).checked ? 1 : 0;})
+  		}
+</script>
+        <div>
+            <h1>Data</h1>
+            <p>This line chart contains the data of average daily number of trips made islandwide on MRT, LRT, bus & taxi(1000).
+            </p>
+        </div>
+        <div>
+            <h1>Users</h1>
+            <p>This chart can be used by:
+                <br>Singapore Government
+                <br>Public transport owner
+            </p>
+        </div>
+        <br>
+
+        <div>
+            <h1>Use Cases</h1>
+                  <label><p>Comparing the average year by year</p></label>
+                  <label><p>Comparing between type of transportation</p></label>
+                  <label><p>Comparing each value according to the usage of user</p></label>
+                  <label><p>Energy efficientcy in term of transportation</p></label>
+                  <label><p>Economy benefit</p></label>
+                  <label><p>Helping goverment to see the result of thier policies</p></label>
+                  <label><p>Be able to point out the specific data in each type of transportation</p></label><br>
+
+        </div>
+        <br>
+
+        <p>Data taken from <a href="https://data.gov.sg/dataset/public-transport-utilisation-average-public-transport-ridership">data.gov.sg</a></p>
+
+</body>
+</html>
